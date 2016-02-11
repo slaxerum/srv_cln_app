@@ -27,6 +27,8 @@ client_CFLAGS = \
 	-Wno-missing-field-initializers
 
 client_SOURCES = \
+	client_src/usage.c \
+	client_src/log.c \
 	client_src/client.c
 
 client_LDADD = \
