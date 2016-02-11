@@ -23,14 +23,6 @@ char *g_new_file = NULL;
 int g_log_level = SLX_LOG_LVL_DEFAULT;
 int g_buffer_size = SLX_BUFFER_SIZE;
 
-void set_globals(struct usage_param_t *usage_param)
-{
-	strcpy(g_new_file, usage_param->new_file);
-	strcpy(g_org_file, usage_param->org_file);
-	if (usage_param->log_level != -1)
-		g_log_level = usage_param->log_level;
-}
-
 mmb_error_t merge_split_file(char *path, char *buffer, long buffer_size)
 {
 	FILE *pFile = NULL;
