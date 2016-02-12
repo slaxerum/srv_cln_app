@@ -29,7 +29,7 @@ extern int g_buffer_size;
 
 void print_usage()
 {
-	printf("Usage: %s options [ inputfile ... ]\n", SLX_PROGNAME);
+	printf("Usage: %s options [ inputfile ... ]\n", SLX_PROGNAME_CLIENT);
 	printf( " -h --help 		Display this usage information.\n"
 			" -f --file 		File to proceed.\n"
 			" -n --new_file		Output to file.\n"

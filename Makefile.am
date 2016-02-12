@@ -8,9 +8,11 @@ server_CFLAGS = \
 	-Wextra \
 	-Werror \
 	-Wno-unused-parameter \
-	-Wno-missing-field-initializers
+	-Wno-missing-field-initializers \
+	-I$(srcdir)/common_src
 
 server_SOURCES = \
+	common_src/log.c \
 	server_src/server.c
 
 server_LDADD = \
@@ -24,11 +26,12 @@ client_CFLAGS = \
 	-Wextra \
 	-Werror \
 	-Wno-unused-parameter \
-	-Wno-missing-field-initializers
+	-Wno-missing-field-initializers \
+	-I$(srcdir)/common_src
 
 client_SOURCES = \
 	client_src/usage.c \
-	client_src/log.c \
+	common_src/log.c \
 	client_src/client.c
 
 client_LDADD = \

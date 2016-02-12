@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 	parse_command_line(argc, argv);
 	
 	SLX_log_message_init();
-	SLX_NOTICE("Begin - %s", SLX_PROGNAME);
+	SLX_NOTICE("Begin - %s", SLX_PROGNAME_CLIENT);
 	SLX_NOTICE("***************************************************");
 	SLX_NOTICE("Original file	: %s", g_org_file);
 	SLX_NOTICE("New file		: %s", g_new_file);
@@ -237,6 +237,6 @@ int main(int argc, char *argv[])
 	
 	SLX_NOTICE("End - Client BackMM", 0);
 	
-	return err;
+	return 0;
 }
 
