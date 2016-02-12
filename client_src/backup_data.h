@@ -9,14 +9,14 @@
  * Copyright (c) 2010-2011 SlaxerumBakcup Inc. All Rights Reserved.
  *------------------------------------------------------------------------------
  */
-#ifndef _SLX_GLOBAL_H
-#define _SLX_GLOBAL_H
+#ifndef _SLX_BACKUP_DATA_H
+#define _SLX_BACKUP_DATA_H
 
-#include "backup_data.h"
-
-#define SLX_BUFFER_SIZE 256
-#define SLX_PATH 256
-#define SLX_MAX_BACKUP_ITEMS 1000
-#define SLX_PROGNAME "SlaxerumBakcup Client"
+struct backup_item_t
+{
+	int item_size;
+	char *item_data;
+};
+typedef struct backup_item_t backup_item_t;  
 
 #endif

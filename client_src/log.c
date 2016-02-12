@@ -48,7 +48,7 @@ char *log_level_str(int lvl)
 	return lvl_str;
 } 
 
-void SLX_log_message(int lvl, const char* format, ...)
+void SLX_log_message(int new_line, int lvl, const char* format, ...)
 {
 	char msg[1024] = {0};
     va_list args;
@@ -68,12 +68,20 @@ void SLX_log_message(int lvl, const char* format, ...)
     vsnprintf(msg, sizeof(msg), format, args);
     va_end(args);
 	
-	len = (int)strlen(msg);
-	snprintf(msg + len, sizeof(msg) - len, "\n");
-	if (lvl <= g_log_level)
+	if (new_line)
+	{
+		len = (int)strlen(msg);
+		snprintf(msg + len, sizeof(msg) - len, "\n");
+	}
+	
+	if (lvl <= g_log_level && lvl != -1)
 	{
 		pid_t tid = (pid_t) syscall(SYS_gettid);
 		fprintf(stdout, "%s%s[%u]: [%u] %s%s", timestr, process_name, process_id, tid, log_level_str(lvl), msg);
+	}
+	else if (lvl == -1)
+	{
+		fprintf(stdout, "%s", msg);
 	}
 }
 
