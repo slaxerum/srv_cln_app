@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 	parse_command_line(argc, argv);
 	
 	SLX_log_message_init();
-	SLX_NOTICE("Begin - %s", SLX_PROGNAME_CLIENT);
+	SLX_NOTICE("Begin - %s ver. %s", SLX_PROGNAME_CLIENT, build_version());
 	SLX_NOTICE("***************************************************");
 	SLX_NOTICE("Original file	: %s", g_org_file);
 	SLX_NOTICE("New file		: %s", g_new_file);

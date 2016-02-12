@@ -49,6 +49,7 @@
 
 #define SLX_LOG_LVL_DEFAULT	SLX_LOG_LVL_NOTICE
 
+char *build_version();
 char *log_level_str(int lvl);
 void SLX_log_message(int new_line, int lvl, const char* format, ...);
 void SLX_log_message_init();
