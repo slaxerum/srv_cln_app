@@ -11,21 +11,29 @@
  */
 
 #include <stdio.h> 
-#include <stdlib.h>
 #include <stdint.h>
+#include <netinet/in.h>
+#include <time.h> 
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
 #include "global.h"
 #include "usage.h"
 #include "log.h"
 
-typedef uint64_t slx_error_t;
 char *g_org_file = NULL;
 char *g_new_file = NULL;
-int g_log_level = SLX_LOG_LVL_DEFAULT;
 int g_buffer_size = SLX_BUFFER_SIZE;
 struct backup_item_t backup_items[SLX_MAX_BACKUP_ITEMS];
 int g_backup_item_count = 0;
+int g_port = 5556;
+const char clientTestMessage[] = {"SLX Client Test Message"};
 
-void clean_the_mess()
+/*void clean_the_mess()
 {
 	int i = 0;
 	
@@ -204,38 +212,84 @@ slx_error_t read_split_file_and_merge(char *org_file_path, char *new_file_path)
 		SLX_INFO("Unable open file %s", org_file_path);
 		return SLX_EGENERIC;
 	}
-}
+}*/
 
 int main(int argc, char *argv[])
 {
 	slx_error_t err = SLX_OK;
+    int connfd = 0;
+    char recvBuff[1025];
+	char sendBuff[1025];
+    struct sockaddr_in serv_addr;
+
+    memset(recvBuff, '\0',sizeof(recvBuff));
+	memset(sendBuff, '\0',sizeof(sendBuff));
+    memset(&serv_addr, '0', sizeof(serv_addr));	
+	strcpy(sendBuff, clientTestMessage);
 	
-	//allocate memory 
-	g_org_file = (char*) malloc(sizeof(char)*SLX_PATH);
-	g_new_file = (char*) malloc(sizeof(char)*SLX_PATH);
+	SLX_log_information_init();
+	SLX_INFO_NOTICE("Begin - %s ver. %s", SLX_PROGNAME_CLIENT, build_version());
 	
-	//parse command line
-	parse_command_line(argc, argv);
+    if((connfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+		err = SLX_SET_ERRNO(errno);
+		SLX_ERROR_DONE(err, "Unable to create client socket, socket: %d", connfd);
+    } 
+
+	SLX_INFO_NOTICE_LOG("Client socket created, socket: %d", connfd);
+	 
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(g_port); 
+
+    if((err = inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)) <= 0)
+    {
+		if (err == 0)
+		{
+			err = SLX_INET_PTON_ERR;
+			SLX_ERROR_DONE(err, "inet_pton - src does not contain a character string representing a valid network address in the specified address family");
+		}
+		else
+		{
+			err = SLX_SET_ERRNO(errno);
+			SLX_ERROR_DONE(err, "Client inet_pton error occurred, cannot convert IPv4 and IPv6 addresses");
+		}
+    } 
 	
-	SLX_log_message_init();
-	SLX_NOTICE("Begin - %s ver. %s", SLX_PROGNAME_CLIENT, build_version());
-	SLX_NOTICE("***************************************************");
-	SLX_NOTICE("Original file	: %s", g_org_file);
-	SLX_NOTICE("New file		: %s", g_new_file);
-	SLX_NOTICE("Buffer size		: %d", g_buffer_size);
+	SLX_INFO_NOTICE_LOG("Client inet_pton convert IPv4/IPv6");
+
+    if(connect(connfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+		err = SLX_SET_ERRNO(errno);
+		SLX_ERROR_DONE(err, "Client connect failed");	   
+    }
 	
-	err = read_split_file(g_org_file);
-	err = merge_split_file(g_new_file);
+	SLX_INFO_NOTICE("Client connect successfully");
+
+    while(1)
+    {
+        if(send(connfd, sendBuff, strlen(sendBuff), 0) < 0)
+        {
+			err = SLX_SET_ERRNO(errno);
+			SLX_ERROR_DONE(err, "Unable to send data to server");
+        }
+         
+		SLX_INFO_NOTICE_LOG("Data sended to server successfully");
+
+        if( recv(connfd, sendBuff, 1025, 0) < 0)
+        {
+			err = SLX_SET_ERRNO(errno);
+			SLX_ERROR_DONE(err, "Unable to receive respond from server");
+        }
+		
+        SLX_INFO_NOTICE_LOG("Server reply : \"%s\"", sendBuff);
+		break;
+    }
 	
-	if (SLX_IS_OK(err))
-		SLX_NOTICE("*** Successfully ***", 0);
-	
-	//clear
-	free(g_org_file);
-	free(g_new_file);
-	clean_the_mess();
-	
-	SLX_NOTICE("End - Client BackMM", 0);
+done:
+	close(connfd);
+	if (SLX_IS_ERROR(err))
+		SLX_INFO_ERROR_CODE(err, "Error occurred during connection.");
+	SLX_INFO_NOTICE("End - Client BackMM", 0);
 	
 	return 0;
 }
