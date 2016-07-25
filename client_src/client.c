@@ -24,6 +24,7 @@
 #include "global.h"
 #include "usage.h"
 #include "log.h"
+#include "message.h"
 
 char *g_org_file = NULL;
 char *g_new_file = NULL;
@@ -221,6 +222,7 @@ int main(int argc, char *argv[])
     char recvBuff[1025];
 	char sendBuff[1025];
     struct sockaddr_in serv_addr;
+	unsigned char *buff_send = NULL;
 
     memset(recvBuff, '\0',sizeof(recvBuff));
 	memset(sendBuff, '\0',sizeof(sendBuff));
@@ -265,9 +267,25 @@ int main(int argc, char *argv[])
 	
 	SLX_INFO_NOTICE("Client connect successfully");
 
+	//prepare data to send
+	slx_req_header_t header;
+	slx_req_echo_t echo;
+	
+	memset(&echo, '\0',sizeof(slx_req_echo_t));
+	memset(&header, '\0',sizeof(slx_req_header_t));
+	
+	header.message_code = SLX_ECHO;
+	header.status = SLX_OK;
+	strcpy(echo.echo_req_text, clientTestMessage);
+	
+	buff_send = malloc(sizeof(slx_req_header_t) + sizeof(slx_req_echo_t));
+	memcpy(buff_send, &header, sizeof(slx_req_header_t));
+	memcpy(buff_send + sizeof(slx_req_header_t), &echo, sizeof(slx_req_echo_t));
+	
     while(1)
     {
-        if(send(connfd, sendBuff, strlen(sendBuff), 0) < 0)
+        //if(send(connfd, sendBuff, strlen(sendBuff), 0) < 0)
+		if(send(connfd, buff_send, sizeof(slx_req_header_t) + sizeof(slx_req_echo_t), 0) < 0)
         {
 			err = SLX_SET_ERRNO(errno);
 			SLX_ERROR_DONE(err, "Unable to send data to server");
@@ -275,11 +293,29 @@ int main(int argc, char *argv[])
          
 		SLX_INFO_NOTICE_LOG("Data sended to server successfully");
 
-        if( recv(connfd, sendBuff, 1025, 0) < 0)
+        if( recv(connfd, recvBuff, 1025, 0) < 0)
         {
 			err = SLX_SET_ERRNO(errno);
 			SLX_ERROR_DONE(err, "Unable to receive respond from server");
         }
+		
+		//decode message
+		slx_res_header_t header_res;
+		
+		memcpy(&header_res, &recvBuff, sizeof(slx_req_header_t));
+		SLX_INFO_NOTICE("header.message_code\t%d", header_res.message_code);
+		SLX_INFO_NOTICE("header.status      \t%d", header_res.status);
+		
+		if (header_res.message_code == SLX_ECHO)
+		{
+			slx_replay_echo_t echo_res;
+			memset(&echo_res, '\0',sizeof(slx_req_echo_t));
+			memcpy(&echo_res, *(&recvBuff) + sizeof(slx_res_header_t), sizeof(slx_replay_echo_t));
+			
+			SLX_INFO_NOTICE("echo_res.echo_replay_text \t\"%s\"", echo_res.echo_replay_text);
+		}
+		else
+			SLX_ERROR_DONE(err, "Unable to determine message header");	
 		
         SLX_INFO_NOTICE_LOG("Server reply : \"%s\"", sendBuff);
 		break;
