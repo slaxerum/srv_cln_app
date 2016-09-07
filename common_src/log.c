@@ -41,7 +41,7 @@ char *log_level_to_str(int lvl)
 		case SLX_LOG_LVL_ERROR  : lv_str = "ERROR:  ";   break;
 		case SLX_LOG_LVL_WARN   : lv_str = "WARN:   ";    break;
 		case SLX_LOG_LVL_NOTICE : lv_str = "NOTICE: ";  break;
-		default:                  lv_str = "";			break;
+		default:                  lv_str = " ";			break;
 	}
 
 	return lv_str;
